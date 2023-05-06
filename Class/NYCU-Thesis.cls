@@ -174,6 +174,10 @@
 \usepackage{appendix}
 % For converting arabic number to chinese number
 \usepackage{Class/xCJKnumb}
+% For the position of watermark 
+\usepackage{tikz}
+% For Watermark
+\usepackage{eso-pic}
 
 %======================================================================
 % 3.0 Macro Definition
@@ -221,6 +225,46 @@
 \def\zhDegreeMonth#1{\gdef\@zhDegreeMonth{#1}}
 \def\enDegreeYear#1{\gdef\@enDegreeYear{#1}}
 \def\enDegreeMonth#1{\gdef\@enDegreeMonth{#1}}
+
+% The path to watermark
+\def\watermark#1{\gdef\@watermark{#1}}
+
+%----------------------------------------------------------------------
+% WATERMARK (浮水印)
+%----------------------------------------------------------------------
+
+% Set the source of watermark
+\newcommand\BackgroundPicture{
+    % For draft mode, print "DRAFT"
+    \ifThesisModeDraft
+        \setlength{\@tempdimb}{.5\paperwidth}
+        \setlength{\@tempdimc}{.5\paperheight}
+        \setlength{\unitlength}{1pt}
+        \put(\strip@pt\@tempdimb,\strip@pt\@tempdimc){
+        \makebox(0,0){\rotatebox{45}{\textcolor[gray]{0.75}
+            {\fontsize{6cm}{6cm}\selectfont{DRAFT}}}}
+        }
+    \fi
+    % HINT: For final mode, print the watermark specified by \watermark{}
+    \ifThesisModeFinal
+        \begin{tikzpicture}
+            \node[minimum width=\paperwidth, minimum height=\paperheight, opacity=0.15]
+                {\includegraphics[width=0.85\textwidth]{\@watermark}};
+        \end{tikzpicture}
+    \fi
+}
+
+% Update \cleardoublepage to handle watermark
+% 	\chapter{} implicity calls \cleardoublepage first, then starts to print chapter title and contents
+\let\oldcleardoublepage\cleardoublepage
+\renewcommand{\cleardoublepage}{
+	% Remove watermark if previous page is a blank even page in twoside mode.
+	\newpage
+	\ClearShipoutPicture
+	\oldcleardoublepage
+	% Add watermark
+	\AddToShipoutPicture{\BackgroundPicture}
+}
 
 %======================================================================
 % 4.0 Font Configuration
@@ -341,6 +385,9 @@
 \def\makeTitlePage{
 
     \thispagestyle{empty}
+
+	% Add watermark
+	\AddToShipoutPicture*{\BackgroundPicture}
 
     \begin{center}
         \begin{doublespacing}
